@@ -26,12 +26,32 @@ const LEVEL_CONFIG = {
         name: "Final Showdown",
         description: "The mafia boss sent everything! Survive the gauntlet!",
         endScore: 6000,
-        obstacleInterval: 900,
+        obstacleInterval: 1000,
         obstacleTypes: ['bird', 'bomb', 'coin', 'mafiaCar', 'bullet', 'spikeStrip', 'oilSlick', 'helicopter'],
         skyColors: ['#0d0d0d', '#1a0000', '#330000'],
         speedMultiplier: 1.6
+    },
+    4: {
+        name: "Midnight Run",
+        description: "The darkness hides your enemies. Keep your eyes sharp!",
+        endScore: 9000,
+        obstacleInterval: 800,
+        obstacleTypes: ['bird', 'bomb', 'coin', 'mafiaCar', 'bullet', 'spikeStrip', 'oilSlick', 'helicopter'],
+        skyColors: ['#060606', '#0a0a0a', '#101010'],
+        speedMultiplier: 2.0
+    },
+    5: {
+        name: "Godspeed",
+        description: "Total anarchy! Only the legendary rider survives!",
+        endScore: 12000,
+        obstacleInterval: 650,
+        obstacleTypes: ['bird', 'bomb', 'coin', 'mafiaCar', 'bullet', 'spikeStrip', 'oilSlick', 'helicopter'],
+        skyColors: ['#2b0000', '#1a0000', '#000000'],
+        speedMultiplier: 2.5
     }
 };
+
+const MAX_LEVEL = Object.keys(LEVEL_CONFIG).length;
 
 const motorcycle = {
     x: 100,
@@ -86,7 +106,7 @@ let mafiaChaseActive = false;
 let mafiaChaseTimer = 0;
 
 function getLevelConfig() {
-    return LEVEL_CONFIG[currentLevel] || LEVEL_CONFIG[3];
+    return LEVEL_CONFIG[currentLevel] || LEVEL_CONFIG[MAX_LEVEL];
 }
 
 function getRoadY(x) {
@@ -479,8 +499,10 @@ function drawBackground() {
         ctx.fillText('Dodge obstacles! Collect coins! Deliver the documents!', canvas.width / 2, 50);
     } else if (currentLevel === 2) {
         ctx.fillText('Watch out for mafia cars and gunfire! Duck to avoid bullets!', canvas.width / 2, 50);
-    } else {
+    } else if (currentLevel === 3) {
         ctx.fillText('The helicopter is dropping bombs! Spike strips ahead! SURVIVE!', canvas.width / 2, 50);
+    } else {
+        ctx.fillText('Pure chaos!! Everything they have is coming for you! GODSPEED!', canvas.width / 2, 50);
     }
     ctx.textAlign = 'left';
 }
@@ -1322,16 +1344,16 @@ function drawVictoryMessage() {
     ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
     
-    if (currentLevel < 3) {
+    if (currentLevel < MAX_LEVEL) {
         ctx.fillText(`🎉 LEVEL ${currentLevel} COMPLETE! 🎉`, canvas.width / 2, 32);
         ctx.fillStyle = 'white';
         ctx.font = '14px Arial';
-        ctx.fillText('Documents safely passed! Get ready for the next challenge!', canvas.width / 2, 52);
+        ctx.fillText('Documents safely passed! Press R or the button below for the next challenge!', canvas.width / 2, 52);
     } else {
         ctx.fillText('🏆 MISSION ACCOMPLISHED! 🏆', canvas.width / 2, 32);
         ctx.fillStyle = 'white';
         ctx.font = '14px Arial';
-        ctx.fillText('The mafia has been exposed! Justice prevails!', canvas.width / 2, 52);
+        ctx.fillText('The mafia has been exposed! Justice prevails! Press R to restart.', canvas.width / 2, 52);
     }
     ctx.textAlign = 'left';
 }
@@ -1418,7 +1440,7 @@ function restart() {
 }
 
 function nextLevel() {
-    if (currentLevel < 3) {
+    if (currentLevel < MAX_LEVEL) {
         currentLevel++;
         startLevel(currentLevel);
     } else {
@@ -1510,7 +1532,7 @@ function update() {
     
     if (levelComplete && victoryTimer > 180) {
         restartButton.style.display = 'block';
-        if (currentLevel < 3) {
+        if (currentLevel < MAX_LEVEL) {
             restartButton.textContent = `Play Level ${currentLevel + 1}`;
         } else {
             restartButton.textContent = 'Play Again (You Won!)';
@@ -1530,6 +1552,13 @@ function keyDown(e) {
         motorcycle.dx = -motorcycle.speed;
     } else if (e.key === 'ArrowDown' || e.key === 's') {
         motorcycle.isDucking = true;
+    } else if (e.key === 'r' || e.key === 'R') {
+        if (levelComplete) {
+            nextLevel();
+            restartButton.style.display = 'none';
+        } else if (gameOver) {
+            restart();
+        }
     }
 }
 
@@ -1546,10 +1575,9 @@ document.addEventListener('keydown', keyDown);
 document.addEventListener('keyup', keyUp);
 
 restartButton.addEventListener('click', function() {
-    if (levelComplete && currentLevel < 3) {
+    if (levelComplete) {
         nextLevel();
         restartButton.style.display = 'none';
-        update();
     } else {
         restart();
     }
